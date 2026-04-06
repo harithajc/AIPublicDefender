@@ -41,7 +41,10 @@
     
     <div class="d-flex justify-content-between align-items-center mt-4 no-print" style="max-width: 850px; margin: auto;">
         <button onclick="window.location.href='/app'" class="btn btn-outline-secondary">← Back to Form</button>
-        <button onclick="window.print()" class="btn btn-print fw-bold">⬇️ Download as PDF</button>
+        <div>
+            <button id="readAloudBtn" class="btn btn-info fw-bold me-2">🔊 Read Aloud</button>
+            <button onclick="window.print()" class="btn btn-print fw-bold">⬇️ Download as PDF</button>
+        </div>
     </div>
 
     <div class="roadmap-container">
@@ -75,6 +78,50 @@
     } else {
         document.getElementById('roadmapContent').innerHTML = "<div class='alert alert-danger'>No roadmap data found. Please generate it from the main form.</div>";
     }
+
+    // 3. Text-to-Speech functionality
+    const readAloudBtn = document.getElementById('readAloudBtn');
+    const synth = window.speechSynthesis;
+    let isSpeaking = false;
+
+    readAloudBtn.addEventListener('click', () => {
+        const contentText = document.getElementById('roadmapContent').innerText;
+
+        if (isSpeaking) {
+            synth.cancel();
+            readAloudBtn.textContent = '🔊 Read Aloud';
+            isSpeaking = false;
+            return;
+        }
+
+        if (contentText.includes('No roadmap data found')) {
+            alert('No roadmap to read. Please generate one first.');
+            return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(contentText);
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+
+        utterance.onstart = () => {
+            isSpeaking = true;
+            readAloudBtn.textContent = '⏹️ Stop Reading';
+        };
+
+        utterance.onend = () => {
+            isSpeaking = false;
+            readAloudBtn.textContent = '🔊 Read Aloud';
+        };
+
+        utterance.onerror = (event) => {
+            console.error('Speech synthesis error:', event.error);
+            isSpeaking = false;
+            readAloudBtn.textContent = '🔊 Read Aloud';
+        };
+
+        synth.speak(utterance);
+    });
 </script>
 
 </body>

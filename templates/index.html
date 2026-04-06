@@ -190,6 +190,9 @@
                                 <label for="context" class="form-label fw-bold mb-1" id="ui-ctx-label">Multilingual Text Board</label>
                                 <div class="text-muted small" id="ui-board-hint">Type in Kannada, Marathi, or Hindi with the cursor in the box below.</div>
                             </div>
+                            <button type="button" id="microphoneBtn" class="btn btn-sm btn-outline-primary" title="Speak your problem">
+                                <span id="micStatus">🎤 Speak</span>
+                            </button>
                         </div>
 
                         <div class="d-flex board-toolbar mb-3" role="group" aria-label="Typing language board">
@@ -515,6 +518,55 @@
     });
 
     applyBoardLanguage(document.getElementById('language').value);
+
+    // --- VOICE INPUT LOGIC (Web Speech API) ---
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const microphoneBtn = document.getElementById('microphoneBtn');
+    const micStatus = document.getElementById('micStatus');
+    const contextField = document.getElementById('context');
+    let recognition;
+    let isListening = false;
+
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+
+        microphoneBtn.addEventListener('click', () => {
+            if (!isListening) {
+                isListening = true;
+                micStatus.textContent = '⏹️ Listening...';
+                microphoneBtn.classList.add('active');
+                recognition.lang = document.getElementById('language').value === 'Kannada' ? 'kn-IN' :
+                                   document.getElementById('language').value === 'Hindi' ? 'hi-IN' :
+                                   document.getElementById('language').value === 'Marathi' ? 'mr-IN' : 'en-US';
+                recognition.start();
+            }
+        });
+
+        recognition.onresult = (event) => {
+            let transcript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                transcript += event.results[i][0].transcript;
+            }
+            contextField.value = transcript;
+        };
+
+        recognition.onend = () => {
+            isListening = false;
+            micStatus.textContent = '🎤 Speak';
+            microphoneBtn.classList.remove('active');
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            micStatus.textContent = '🎤 Error';
+            isListening = false;
+            microphoneBtn.classList.remove('active');
+        };
+    } else {
+        microphoneBtn.style.display = 'none';
+    }
 
     // --- FORM SUBMISSION LOGIC ---
     document.getElementById('legalForm').addEventListener('submit', async function(e) {
