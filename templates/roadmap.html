@@ -84,6 +84,17 @@
     const synth = window.speechSynthesis;
     let isSpeaking = false;
 
+    // Get the language from localStorage
+    const selectedLanguage = localStorage.getItem('legalLanguage') || 'English';
+    
+    // Map language to language code for speech synthesis
+    const languageMap = {
+        'English': 'en-US',
+        'Kannada': 'kn-IN',
+        'Hindi': 'hi-IN',
+        'Marathi': 'mr-IN'
+    };
+
     readAloudBtn.addEventListener('click', () => {
         const contentText = document.getElementById('roadmapContent').innerText;
 
@@ -100,6 +111,7 @@
         }
 
         const utterance = new SpeechSynthesisUtterance(contentText);
+        utterance.lang = languageMap[selectedLanguage] || 'en-US';
         utterance.rate = 1;
         utterance.pitch = 1;
         utterance.volume = 1;
