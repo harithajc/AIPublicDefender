@@ -8,12 +8,20 @@ app = Flask(__name__)
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 @app.route('/')
+def signin():
+    return render_template('signin.html')
+
+@app.route('/app')
 def home():
     return render_template('index.html')
 
 @app.route('/roadmap')
 def roadmap():
     return render_template('roadmap.html')
+
+@app.route('/signin')
+def signin_alias():
+    return render_template('signin.html')
 
 @app.route('/api/analyze-case', methods=['POST'])
 def analyze_case():
