@@ -53,8 +53,7 @@
             border-color: #003366;
         }
         .text-board {
-            min-height: 260px;
-            height: 100%;
+            min-height: 220px;
             resize: none;
             font-size: 1.05rem;
             line-height: 1.8;
@@ -63,17 +62,18 @@
             display: grid;
             grid-template-columns: 1.05fr 0.95fr;
             gap: 1rem;
-            align-items: stretch;
+            align-items: start;
         }
         .typing-workspace .board-panel,
         .typing-workspace .keyboard-shell {
             margin-bottom: 0;
-            height: 100%;
         }
         .keyboard-shell {
             border: 1px solid rgba(0, 51, 102, 0.12);
             border-radius: 16px;
             background: #fefefe;
+            overflow: hidden;
+            padding: 8px !important;
         }
         .keyboard-title {
             font-weight: 800;
@@ -81,22 +81,21 @@
         }
         .keyboard-row {
             display: flex;
-            flex-wrap: nowrap;
-            gap: 0.45rem;
-            margin-bottom: 0.55rem;
-            overflow-x: auto;
-            padding-bottom: 0.2rem;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            margin-bottom: 0.25rem;
         }
         .kbd-key {
             border: 1px solid rgba(0, 51, 102, 0.16);
             background: linear-gradient(180deg, #ffffff 0%, #f3f7fb 100%);
             color: #102a43;
             border-radius: 10px;
-            min-width: 2.7rem;
-            min-height: 2.7rem;
-            padding: 0.35rem 0.65rem;
+            min-width: 2.3rem;
+            min-height: 2.3rem;
+            padding: 0.25rem 0.5rem;
             font-weight: 700;
             transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+            font-size: 0.9rem;
         }
         .kbd-key:hover {
             transform: translateY(-1px);
@@ -106,9 +105,10 @@
             min-width: 5rem;
         }
         .kbd-key.tiny {
-            min-width: 2.5rem;
-            min-height: 2.5rem;
-            padding: 0.25rem 0.5rem;
+            min-width: 2rem;
+            min-height: 2.3rem;
+            padding: 0.2rem 0.4rem;
+            font-size: 0.75rem;
         }
         .kbd-key.action {
             background: #003366;
@@ -116,9 +116,8 @@
             border-color: #003366;
         }
         #virtualKeyboard {
-            max-height: 340px;
-            overflow-y: auto;
-            padding-right: 0.2rem;
+            max-height: none;
+            overflow: visible;
         }
         @media (max-width: 991.98px) {
             .typing-workspace {
@@ -336,6 +335,8 @@
         }
     };
 
+    const k = (label, hint, value = label) => ({ label, hint, value });
+
     const keyboardLayouts = {
         English: [
             ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'],
@@ -343,11 +344,15 @@
             ['u', 'v', 'w', 'x', 'y', 'z']
         ],
         Kannada: [
-            ['ಅ', 'ಆ', 'ಇ', 'ಈ', 'ಉ', 'ಊ', 'ಎ', 'ಏ', 'ಐ', 'ಒ', 'ಓ', 'ಔ'],
-            ['ಕ', 'ಖ', 'ಗ', 'ಘ', 'ಙ', 'ಚ', 'ಛ', 'ಜ', 'ಝ', 'ಞ'],
-            ['ಟ', 'ಠ', 'ಡ', 'ಢ', 'ಣ', 'ತ', 'ಥ', 'ದ', 'ಧ', 'ನ'],
-            ['ಪ', 'ಫ', 'ಬ', 'ಭ', 'ಮ', 'ಯ', 'ರ', 'ಲ', 'ವ'],
-            ['ಶ', 'ಷ', 'ಸ', 'ಹ', 'ಳ', 'ಕ್ಷ', 'ಜ್ಞ']
+            [k('೦', 'zero'), k('೧', 'one'), k('೨', 'two'), k('೩', 'three'), k('೪', 'four'), k('೫', 'five'), k('೬', 'six'), k('೭', 'seven'), k('೮', 'eight'), k('೯', 'nine')],
+            [k('ಅ', 'a'), k('ಆ', 'aa'), k('ಇ', 'i'), k('ಈ', 'ii'), k('ಉ', 'u'), k('ಊ', 'uu'), k('ಋ', 'ru'), k('ಎ', 'e'), k('ಏ', 'ee'), k('ಐ', 'ai')],
+            [k('ಒ', 'o'), k('ಓ', 'oo'), k('ಔ', 'au')],
+            [k('ಕ', 'ka'), k('ಖ', 'kha'), k('ಗ', 'ga'), k('ಘ', 'gha'), k('ಙ', 'nga'), k('ಚ', 'cha'), k('ಛ', 'chha'), k('ಜ', 'ja'), k('ಝ', 'jha'), k('ಞ', 'nya')],
+            [k('ಟ', 'ta'), k('ಠ', 'tha'), k('ಡ', 'da'), k('ಢ', 'dha'), k('ಣ', 'na'), k('ತ', 'tha'), k('ಥ', 'thha'), k('ದ', 'dha'), k('ಧ', 'dhha'), k('ನ', 'na')],
+            [k('ಪ', 'pa'), k('ಫ', 'pha'), k('ಬ', 'ba'), k('ಭ', 'bha'), k('ಮ', 'ma'), k('ಯ', 'ya'), k('ರ', 'ra'), k('ಲ', 'la'), k('ವ', 'va'), k('ಳ', 'lla')],
+            [k('ಶ', 'sha'), k('ಷ', 'ssa'), k('ಸ', 'sa'), k('ಹ', 'ha'), k('ಕ್ಷ', 'ksha'), k('ಜ್ಞ', 'gya')],
+            [k('ಾ', 'aa sign'), k('ಿ', 'i sign'), k('ೀ', 'ii sign'), k('ು', 'u sign'), k('ೂ', 'uu sign'), k('ೃ', 'ru sign'), k('ೆ', 'e sign'), k('ೇ', 'ee sign'), k('ೈ', 'ai sign'), k('ೊ', 'o sign')],
+            [k('ೋ', 'oo sign'), k('ೌ', 'au sign'), k('ಂ', 'anusvara'), k('ಃ', 'visarga'), k('್', 'virama')]
         ],
         Hindi: [
             ['अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ए', 'ऐ', 'ओ', 'औ'],
@@ -401,8 +406,12 @@
         layout.forEach((row) => {
             html += '<div class="keyboard-row">';
             row.forEach((key) => {
-                const keyClass = key.length > 1 ? 'kbd-key tiny' : 'kbd-key';
-                html += `<button type="button" class="${keyClass}" data-key="${key}">${key}</button>`;
+                const keyMeta = typeof key === 'string' ? { label: key, value: key } : key;
+                const keyLabel = keyMeta.label;
+                const keyValue = keyMeta.value || keyLabel;
+                const keyClass = keyLabel.length > 1 ? 'kbd-key tiny' : 'kbd-key';
+                const keyHint = keyMeta.hint ? ` title="${keyMeta.hint}" aria-label="${keyLabel} ${keyMeta.hint}"` : ` aria-label="${keyLabel}"`;
+                html += `<button type="button" class="${keyClass}" data-key="${keyValue}"${keyHint}>${keyLabel}</button>`;
             });
             html += '</div>';
         });
