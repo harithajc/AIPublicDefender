@@ -30,6 +30,15 @@ def analyze_case():
     jurisdiction = data.get('jurisdiction', 'India')
     user_context = data.get('context', 'No specific details provided.')
     language = data.get('language', 'English')
+    cybercrime_portal = 'https://cybercrime.gov.in'
+
+    # Detect cybercrime-related requests from selected situation and free-text context.
+    detection_text = f"{situation_type} {user_context}".lower()
+    cybercrime_keywords = [
+        'cyber', 'online fraud', 'upi fraud', 'phishing', 'scam', 'hacked',
+        'otp', 'financial fraud', 'identity theft', 'social media hack', 'ransomware'
+    ]
+    is_cybercrime_issue = any(keyword in detection_text for keyword in cybercrime_keywords)
 
     # Language-specific headings and instructions
     headings = {
@@ -70,6 +79,15 @@ def analyze_case():
     # Get language-specific headings, default to English
     lang_headings = headings.get(language, headings['English'])
 
+    cybercrime_instruction = ""
+    if is_cybercrime_issue:
+        cybercrime_instruction = f"""
+    MANDATORY CYBERCRIME RULE:
+    - Since this appears to be a cybercrime issue, you MUST include this exact clickable Markdown link in your response:
+      [National Cyber Crime Reporting Portal]({cybercrime_portal})
+    - Do not replace it with generic wording like 'file a complaint online'.
+"""
+
     prompt = f"""
     You are an AI Legal Assistant for Indian Law. The user is in: {jurisdiction}.
     The user is facing this situation: {situation_type}.
@@ -78,6 +96,7 @@ def analyze_case():
     IMPORTANT RULES:
     - You MUST respond ENTIRELY in this language: {language}.
     - You must use simple, accessible language. Do not use heavy legal jargon.
+    {cybercrime_instruction}
     
     Format your response EXACTLY using these sections with the EXACT headings below:
     
@@ -105,7 +124,13 @@ def analyze_case():
             model="gemini-3.1-flash-lite-preview",
             contents=prompt,
         )
-        return jsonify({"status": "success", "ai_response": response.text})
+        ai_text = response.text or ""
+
+        # Safety fallback: ensure the direct portal link is present for cybercrime issues.
+        if is_cybercrime_issue and cybercrime_portal not in ai_text:
+            ai_text += f"\n\n- [National Cyber Crime Reporting Portal]({cybercrime_portal})"
+
+        return jsonify({"status": "success", "ai_response": ai_text})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
