@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Public Defender</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&family=Noto+Sans+Kannada:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            background:
+                radial-gradient(circle at top left, rgba(0, 51, 102, 0.12), transparent 30%),
+                radial-gradient(circle at top right, rgba(19, 106, 138, 0.12), transparent 28%),
+                #f7f9fc;
+            font-family: 'Noto Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .header-box {
+            background: linear-gradient(135deg, #003366 0%, #0f4c81 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+        .board-panel {
+            border: 1px solid rgba(0, 51, 102, 0.12);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+        }
+        .board-toolbar {
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .board-chip {
+            border: 1px solid rgba(0, 51, 102, 0.18);
+            background: #fff;
+            color: #003366;
+            border-radius: 999px;
+            padding: 0.45rem 0.85rem;
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+        .board-chip:hover {
+            background: #eef5ff;
+            transform: translateY(-1px);
+        }
+        .board-chip.active {
+            background: #003366;
+            color: #fff;
+            border-color: #003366;
+        }
+        .text-board {
+            min-height: 260px;
+            height: 100%;
+            resize: none;
+            font-size: 1.05rem;
+            line-height: 1.8;
+        }
+        .typing-workspace {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 1rem;
+            align-items: stretch;
+        }
+        .typing-workspace .board-panel,
+        .typing-workspace .keyboard-shell {
+            margin-bottom: 0;
+            height: 100%;
+        }
+        .keyboard-shell {
+            border: 1px solid rgba(0, 51, 102, 0.12);
+            border-radius: 16px;
+            background: #fefefe;
+        }
+        .keyboard-title {
+            font-weight: 800;
+            color: #003366;
+        }
+        .keyboard-row {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 0.45rem;
+            margin-bottom: 0.55rem;
+            overflow-x: auto;
+            padding-bottom: 0.2rem;
+        }
+        .kbd-key {
+            border: 1px solid rgba(0, 51, 102, 0.16);
+            background: linear-gradient(180deg, #ffffff 0%, #f3f7fb 100%);
+            color: #102a43;
+            border-radius: 10px;
+            min-width: 2.7rem;
+            min-height: 2.7rem;
+            padding: 0.35rem 0.65rem;
+            font-weight: 700;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+        .kbd-key:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(0, 51, 102, 0.12);
+        }
+        .kbd-key.wide {
+            min-width: 5rem;
+        }
+        .kbd-key.tiny {
+            min-width: 2.5rem;
+            min-height: 2.5rem;
+            padding: 0.25rem 0.5rem;
+        }
+        .kbd-key.action {
+            background: #003366;
+            color: #fff;
+            border-color: #003366;
+        }
+        #virtualKeyboard {
+            max-height: 340px;
+            overflow-y: auto;
+            padding-right: 0.2rem;
+        }
+        @media (max-width: 991.98px) {
+            .typing-workspace {
+                grid-template-columns: 1fr;
+            }
+            .text-board {
+                min-height: 200px;
+            }
+            #virtualKeyboard {
+                max-height: none;
+                overflow-y: visible;
+            }
+        }
+        #spinner { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container mt-4 mb-4" style="max-width: 1180px;">
+    <div class="header-box text-center shadow">
+        <h2 id="ui-title">⚖️ AI Public Defender</h2>
+        <p class="mb-0" id="ui-subtitle">Understand your rights and legal procedures. <strong>Not a replacement for a lawyer.</strong></p>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <form id="legalForm">
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="jurisdiction" class="form-label fw-bold" id="ui-jur-label">Jurisdiction (State)</label>
+                        <select class="form-select" id="jurisdiction" required>
+                            <option value="Karnataka, India" selected>Karnataka / ಕರ್ನಾಟಕ</option>
+                            <option value="Maharashtra, India">Maharashtra / महाराष्ट्र</option>
+                            <option value="Delhi, India">Delhi / दिल्ली</option>
+                            <option value="General India">Other / इतेर</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="language" class="form-label fw-bold" id="ui-lang-label">Preferred Language</label>
+                        <select class="form-select" id="language" required>
+                            <option value="English" selected>English</option>
+                            <option value="Kannada">ಕನ್ನಡ (Kannada)</option>
+                            <option value="Hindi">हिंदी (Hindi)</option>
+                            <option value="Marathi">मराठी (Marathi)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="situation" class="form-label fw-bold" id="ui-sit-label">What is your situation?</label>
+                    <select class="form-select" id="situation" required>
+                        <option value="" disabled selected id="ui-opt-select">Select a legal scenario...</option>
+                        <option value="Filing an FIR" id="ui-opt-fir">Filing an FIR</option>
+                        <option value="Responding to a legal notice" id="ui-opt-notice">Responding to a legal notice</option>
+                        <option value="Bail process" id="ui-opt-bail">Bail process</option>
+                        <option value="Small-claims / consumer court process" id="ui-opt-consumer">Consumer court process</option>
+                        <option value="Employment dispute steps" id="ui-opt-emp">Employment dispute</option>
+                    </select>
+                </div>
+
+                <div class="typing-workspace mb-3">
+                    <div class="board-panel p-3 p-md-4">
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                            <div>
+                                <label for="context" class="form-label fw-bold mb-1" id="ui-ctx-label">Multilingual Text Board</label>
+                                <div class="text-muted small" id="ui-board-hint">Type in Kannada, Marathi, or Hindi with the cursor in the box below.</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex board-toolbar mb-3" role="group" aria-label="Typing language board">
+                            <button type="button" class="board-chip active" data-board-lang="English">English</button>
+                            <button type="button" class="board-chip" data-board-lang="Kannada">ಕನ್ನಡ</button>
+                            <button type="button" class="board-chip" data-board-lang="Hindi">हिंदी</button>
+                            <button type="button" class="board-chip" data-board-lang="Marathi">मराठी</button>
+                        </div>
+
+                        <textarea class="form-control text-board" id="context" rows="6" dir="auto" spellcheck="false" placeholder="E.g., I bought a defective laptop..."></textarea>
+                        <div class="form-text mt-2" id="ui-board-help">Your typed details are sent to the AI as part of the case summary.</div>
+                    </div>
+
+                    <div class="keyboard-shell p-3 p-md-4">
+                        <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+                            <div>
+                                <div class="keyboard-title" id="ui-keyboard-title">Virtual Keyboard</div>
+                                <div class="text-muted small" id="ui-keyboard-hint">Click the keys to insert characters at the cursor.</div>
+                            </div>
+                            <div class="text-muted small text-end" id="ui-keyboard-mode">Current layout: English</div>
+                        </div>
+
+                        <div id="virtualKeyboard"></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 fw-bold py-2" id="submitBtn" style="background-color: #003366;">
+                    <span id="spinner" class="spinner-border spinner-border-sm me-2"></span>
+                    <span id="ui-btn-text">Generate Legal Roadmap</span>
+                </button>
+                
+                <div id="errorBox" class="text-danger mt-3 fw-bold text-center"></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- UI TRANSLATION DICTIONARY ---
+    const uiTranslations = {
+        "English": {
+            title: "⚖️ AI Public Defender",
+            subtitle: "Understand your rights and legal procedures. <strong>Not a replacement for a lawyer.</strong>",
+            jurLabel: "Jurisdiction (State)",
+            langLabel: "Preferred Language",
+            sitLabel: "What is your situation?",
+            optSelect: "Select a legal scenario...",
+            optFir: "Filing an FIR",
+            optNotice: "Responding to a legal notice",
+            optBail: "Bail process",
+            optConsumer: "Consumer court process",
+            optEmp: "Employment dispute",
+            ctxLabel: "Multilingual Text Board",
+            boardHint: "Type in Kannada, Marathi, or Hindi with the cursor in the box below.",
+            boardHelp: "Your typed details are sent to the AI as part of the case summary.",
+            ctxPlaceholder: "E.g., my phone was pickpocketed...",
+            keyboardTitle: "Virtual Keyboard",
+            keyboardHint: "Click the keys to insert characters at the cursor.",
+            keyboardMode: "Current layout: English",
+            btnText: "Generate Legal Roadmap"
+        },
+        "Kannada": {
+            title: "⚖️ ಎಐ ಸಾರ್ವಜನಿಕ ರಕ್ಷಕ",
+            subtitle: "ನಿಮ್ಮ ಹಕ್ಕುಗಳು ಮತ್ತು ಕಾನೂನು ಪ್ರಕ್ರಿಯೆಗಳನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳಿ. <strong>ಇದು ವಕೀಲರಿಗೆ ಪರ್ಯಾಯವಲ್ಲ.</strong>",
+            jurLabel: "ವ್ಯಾಪ್ತಿ (ರಾಜ್ಯ)",
+            langLabel: "ಆದ್ಯತೆಯ ಭಾಷೆ",
+            sitLabel: "ನಿಮ್ಮ ಪರಿಸ್ಥಿತಿ ಏನು?",
+            optSelect: "ಕಾನೂನು ಸನ್ನಿವೇಶವನ್ನು ಆಯ್ಕೆಮಾಡಿ...",
+            optFir: "ಎಫ್‌ಐಆರ್ (FIR) ದಾಖಲಿಸುವುದು",
+            optNotice: "ಕಾನೂನು ನೋಟಿಸ್‌ಗೆ ಪ್ರತಿಕ್ರಿಯಿಸುವುದು",
+            optBail: "ಜಾಮೀನು ಪ್ರಕ್ರಿಯೆ",
+            optConsumer: "ಗ್ರಾಹಕ ನ್ಯಾಯಾಲಯದ ಪ್ರಕ್ರಿಯೆ",
+            optEmp: "ಉದ್ಯೋಗ ವಿವಾದ",
+            ctxLabel: "ಬಹುಭಾಷಾ ಪಠ್ಯ ಫಲಕ",
+            boardHint: "ಕೆಳಗಿನ ಬಾಕ್ಸ್‌ನಲ್ಲಿ ಕರ್ಸರ್ ಬಳಸಿ ಕನ್ನಡ, ಮರಾಠಿ ಅಥವಾ ಹಿಂದಿಯಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ.",
+            boardHelp: "ನೀವು ಟೈಪ್ ಮಾಡಿದ ವಿವರಗಳು ಪ್ರಕರಣದ ಸಾರಾಂಶವಾಗಿ AI ಗೆ ಕಳುಹಿಸಲಾಗುತ್ತದೆ.",
+            ctxPlaceholder: "ಉದಾಹರಣೆಗೆ, ಬಸ್ ನಿಲ್ದಾಣದಲ್ಲಿ ನನ್ನ ಫೋನ್ ಕಳುವಾಗಿದೆ...",
+            keyboardTitle: "ವರ್ಚುವಲ್ ಕೀಬೋರ್ಡ್",
+            keyboardHint: "ಕರ್ಸರ್ ಇರುವ ಸ್ಥಳದಲ್ಲಿ ಅಕ್ಷರಗಳನ್ನು ಸೇರಿಸಲು ಕೀಗಳನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ.",
+            keyboardMode: "ಪ್ರಸ್ತುತ ವಿನ್ಯಾಸ: ಕನ್ನಡ",
+            btnText: "ಕಾನೂನು ಮಾರ್ಗಸೂಚಿಯನ್ನು ರಚಿಸಿ"
+        },
+        "Hindi": {
+            title: "⚖️ एआई पब्लिक डिफेंडर",
+            subtitle: "अपने अधिकारों और कानूनी प्रक्रियाओं को समझें। <strong>यह वकील का विकल्प नहीं है।</strong>",
+            jurLabel: "अधिकार क्षेत्र (राज्य)",
+            langLabel: "पसंदीदा भाषा",
+            sitLabel: "आपकी स्थिति क्या है?",
+            optSelect: "कानूनी परिदृश्य चुनें...",
+            optFir: "एफआईआर (FIR) दर्ज करना",
+            optNotice: "कानूनी नोटिस का जवाब देना",
+            optBail: "जमानत प्रक्रिया",
+            optConsumer: "उपभोक्ता अदालत की प्रक्रिया",
+            optEmp: "रोजगार विवाद",
+            ctxLabel: "बहुभाषी टेक्स्ट बोर्ड",
+            boardHint: "नीचे दिए गए बॉक्स में कर्सर से कन्नड़, मराठी या हिंदी में टाइप करें।",
+            boardHelp: "आपके टाइप किए गए विवरण AI को केस सारांश के रूप में भेजे जाएंगे।",
+            ctxPlaceholder: "उदाहरण: मेरा फोन चोरी हो गया...",
+            keyboardTitle: "वर्चुअल कीबोर्ड",
+            keyboardHint: "कर्सर पर अक्षर डालने के लिए कुंजियों पर क्लिक करें।",
+            keyboardMode: "वर्तमान लेआउट: हिंदी",
+            btnText: "कानूनी रोडमैप तैयार करें"
+        },
+        "Marathi": {
+            title: "⚖️ एआय पब्लिक डिफेंडर",
+            subtitle: "तुमचे अधिकार आणि कायदेशीर प्रक्रिया समजून घ्या. <strong>हा वकिलाचा पर्याय नाही.</strong>",
+            jurLabel: "अधिकारक्षेत्र (राज्य)",
+            langLabel: "आवडती भाषा",
+            sitLabel: "तुमची परिस्थिती काय आहे?",
+            optSelect: "कायदेशीर परिस्थिती निवडा...",
+            optFir: "एफआयआर (FIR) दाखल करणे",
+            optNotice: "कायदेशीर नोटीसला उत्तर देणे",
+            optBail: "जामीन प्रक्रिया",
+            optConsumer: "ग्राहक न्यायालय प्रक्रिया",
+            optEmp: "रोजगार वाद",
+            ctxLabel: "बहुभाषिक टेक्स्ट बोर्ड",
+            boardHint: "खालील बॉक्समध्ये कर्सर वापरून कन्नड, मराठी किंवा हिंदीमध्ये टाइप करा.",
+            boardHelp: "तुमचे टाइप केलेले तपशील केस सारांश म्हणून AI कडे पाठवले जातील.",
+            ctxPlaceholder: "उदाहरणार्थ, माझा फोन चोरीला गेला...",
+            keyboardTitle: "व्हर्च्युअल कीबोर्ड",
+            keyboardHint: "कर्सरवर अक्षरे टाकण्यासाठी कीज क्लिक करा.",
+            keyboardMode: "सध्याची मांडणी: मराठी",
+            btnText: "कायदेशीर रोडमॅप तयार करा"
+        }
+    };
+
+    const boardTypography = {
+        English: {
+            fontFamily: "'Noto Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+            placeholder: 'E.g., I bought a defective laptop...'
+        },
+        Kannada: {
+            fontFamily: "'Noto Sans Kannada', 'Noto Sans', sans-serif",
+            placeholder: 'ಉದಾಹರಣೆಗೆ, ನಾನು ದೋಷಪೂರಿತ ಲ್ಯಾಪ್‌ಟಾಪ್ ಖರೀದಿಸಿದೆ...'
+        },
+        Hindi: {
+            fontFamily: "'Noto Sans Devanagari', 'Noto Sans', sans-serif",
+            placeholder: 'उदाहरण: मैंने एक खराब लैपटॉप खरीदा...'
+        },
+        Marathi: {
+            fontFamily: "'Noto Sans Devanagari', 'Noto Sans', sans-serif",
+            placeholder: 'उदाहरणार्थ, मी खराब लॅपटॉप विकत घेतला...'
+        }
+    };
+
+    const keyboardLayouts = {
+        English: [
+            ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'],
+            ['k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't'],
+            ['u', 'v', 'w', 'x', 'y', 'z']
+        ],
+        Kannada: [
+            ['ಅ', 'ಆ', 'ಇ', 'ಈ', 'ಉ', 'ಊ', 'ಎ', 'ಏ', 'ಐ', 'ಒ', 'ಓ', 'ಔ'],
+            ['ಕ', 'ಖ', 'ಗ', 'ಘ', 'ಙ', 'ಚ', 'ಛ', 'ಜ', 'ಝ', 'ಞ'],
+            ['ಟ', 'ಠ', 'ಡ', 'ಢ', 'ಣ', 'ತ', 'ಥ', 'ದ', 'ಧ', 'ನ'],
+            ['ಪ', 'ಫ', 'ಬ', 'ಭ', 'ಮ', 'ಯ', 'ರ', 'ಲ', 'ವ'],
+            ['ಶ', 'ಷ', 'ಸ', 'ಹ', 'ಳ', 'ಕ್ಷ', 'ಜ್ಞ']
+        ],
+        Hindi: [
+            ['अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ए', 'ऐ', 'ओ', 'औ'],
+            ['क', 'ख', 'ग', 'घ', 'ङ', 'च', 'छ', 'ज', 'झ', 'ञ'],
+            ['ट', 'ठ', 'ड', 'ढ', 'ण', 'त', 'थ', 'द', 'ध', 'न'],
+            ['प', 'फ', 'ब', 'भ', 'म', 'य', 'र', 'ल', 'व'],
+            ['श', 'ष', 'स', 'ह', 'क्ष', 'त्र', 'ज्ञ']
+        ],
+        Marathi: [
+            ['अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ए', 'ऐ', 'ओ', 'औ'],
+            ['क', 'ख', 'ग', 'घ', 'ङ', 'च', 'छ', 'ज', 'झ', 'ञ'],
+            ['ट', 'ठ', 'ड', 'ढ', 'ण', 'त', 'थ', 'द', 'ध', 'न'],
+            ['प', 'फ', 'ब', 'भ', 'म', 'य', 'र', 'ल', 'व'],
+            ['श', 'ष', 'स', 'ह', 'ळ', 'क्ष', 'ज्ञ']
+        ]
+    };
+
+    function applyBoardLanguage(lang) {
+        const boardConfig = boardTypography[lang] || boardTypography.English;
+        const board = document.getElementById('context');
+        board.style.fontFamily = boardConfig.fontFamily;
+        board.placeholder = boardConfig.placeholder;
+        board.setAttribute('lang', lang.toLowerCase());
+
+        document.querySelectorAll('.board-chip').forEach((button) => {
+            button.classList.toggle('active', button.dataset.boardLang === lang);
+        });
+
+        renderKeyboard(lang);
+        refreshKeyboardCopy(lang);
+    }
+
+    function insertAtCursor(text) {
+        const board = document.getElementById('context');
+        const start = board.selectionStart;
+        const end = board.selectionEnd;
+        const before = board.value.slice(0, start);
+        const after = board.value.slice(end);
+        board.value = `${before}${text}${after}`;
+        const nextPosition = start + text.length;
+        board.focus();
+        board.setSelectionRange(nextPosition, nextPosition);
+    }
+
+    function renderKeyboard(lang) {
+        const keyboardRoot = document.getElementById('virtualKeyboard');
+        const layout = keyboardLayouts[lang] || keyboardLayouts.English;
+
+        let html = '';
+
+        layout.forEach((row) => {
+            html += '<div class="keyboard-row">';
+            row.forEach((key) => {
+                const keyClass = key.length > 1 ? 'kbd-key tiny' : 'kbd-key';
+                html += `<button type="button" class="${keyClass}" data-key="${key}">${key}</button>`;
+            });
+            html += '</div>';
+        });
+
+        html += `
+            <div class="keyboard-row mt-2">
+                <button type="button" class="kbd-key action wide" data-key="space">Space</button>
+                <button type="button" class="kbd-key action wide" data-key="backspace">Backspace</button>
+                <button type="button" class="kbd-key action wide" data-key="clear">Clear</button>
+                <button type="button" class="kbd-key action wide" data-key="enter">Enter</button>
+            </div>
+        `;
+
+        keyboardRoot.innerHTML = html;
+
+        keyboardRoot.querySelectorAll('[data-key]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const key = button.dataset.key;
+                if (key === 'space') {
+                    insertAtCursor(' ');
+                    return;
+                }
+                if (key === 'enter') {
+                    insertAtCursor('\n');
+                    return;
+                }
+                if (key === 'backspace') {
+                    const board = document.getElementById('context');
+                    const start = board.selectionStart;
+                    const end = board.selectionEnd;
+
+                    if (start !== end) {
+                        const before = board.value.slice(0, start);
+                        const after = board.value.slice(end);
+                        board.value = `${before}${after}`;
+                        board.focus();
+                        board.setSelectionRange(start, start);
+                        return;
+                    }
+
+                    if (start > 0) {
+                        const before = board.value.slice(0, start - 1);
+                        const after = board.value.slice(end);
+                        board.value = `${before}${after}`;
+                        board.focus();
+                        board.setSelectionRange(start - 1, start - 1);
+                    }
+                    return;
+                }
+                if (key === 'clear') {
+                    const board = document.getElementById('context');
+                    board.value = '';
+                    board.focus();
+                    board.setSelectionRange(0, 0);
+                    return;
+                }
+
+                insertAtCursor(key);
+            });
+        });
+    }
+
+    function refreshKeyboardCopy(lang) {
+        const dict = uiTranslations[lang] || uiTranslations.English;
+        document.getElementById('ui-keyboard-title').innerText = dict.keyboardTitle;
+        document.getElementById('ui-keyboard-hint').innerText = dict.keyboardHint;
+        document.getElementById('ui-keyboard-mode').innerText = dict.keyboardMode;
+    }
+
+    // --- INSTANT TRANSLATION LOGIC ---
+    document.getElementById('language').addEventListener('change', function(e) {
+        const lang = e.target.value;
+        const dict = uiTranslations[lang] || uiTranslations["English"];
+        
+        document.getElementById('ui-title').innerText = dict.title;
+        document.getElementById('ui-subtitle').innerHTML = dict.subtitle;
+        document.getElementById('ui-jur-label').innerText = dict.jurLabel;
+        document.getElementById('ui-lang-label').innerText = dict.langLabel;
+        document.getElementById('ui-sit-label').innerText = dict.sitLabel;
+        
+        document.getElementById('ui-opt-select').innerText = dict.optSelect;
+        document.getElementById('ui-opt-fir').innerText = dict.optFir;
+        document.getElementById('ui-opt-notice').innerText = dict.optNotice;
+        document.getElementById('ui-opt-bail').innerText = dict.optBail;
+        document.getElementById('ui-opt-consumer').innerText = dict.optConsumer;
+        document.getElementById('ui-opt-emp').innerText = dict.optEmp;
+        
+        document.getElementById('ui-ctx-label').innerText = dict.ctxLabel;
+        document.getElementById('ui-board-hint').innerText = dict.boardHint;
+        document.getElementById('ui-board-help').innerText = dict.boardHelp;
+        document.getElementById('context').placeholder = dict.ctxPlaceholder;
+        document.getElementById('ui-btn-text').innerText = dict.btnText;
+
+        applyBoardLanguage(lang);
+    });
+
+    document.querySelectorAll('.board-chip').forEach((button) => {
+        button.addEventListener('click', () => {
+            applyBoardLanguage(button.dataset.boardLang);
+        });
+    });
+
+    applyBoardLanguage(document.getElementById('language').value);
+
+    // --- FORM SUBMISSION LOGIC ---
+    document.getElementById('legalForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const spinner = document.getElementById('spinner');
+        const errorBox = document.getElementById('errorBox');
+        
+        submitBtn.disabled = true;
+        spinner.style.display = 'inline-block';
+        errorBox.innerHTML = '';
+        
+        const payload = {
+            jurisdiction: document.getElementById('jurisdiction').value,
+            language: document.getElementById('language').value,
+            situation: document.getElementById('situation').value,
+            context: document.getElementById('context').value
+        };
+
+        try {
+            const response = await fetch('/api/analyze-case', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                localStorage.setItem('legalRoadmap', marked.parse(data.ai_response));
+                
+                // SAFELY REDIRECT TO ROADMAP (Fixes the PDF/Popup bug)
+                window.location.href = '/roadmap'; 
+            } else {
+                errorBox.innerHTML = `Error: ${data.message}`;
+            }
+        } catch (error) {
+            errorBox.innerHTML = `Connection failed. Make sure Flask is running.`;
+        }
+        
+        submitBtn.disabled = false;
+        spinner.style.display = 'none';
+    });
+</script>
+
+</body>
+</html>

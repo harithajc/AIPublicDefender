@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Legal Roadmap</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #ffffff; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+        .roadmap-container {
+            max-width: 850px;
+            margin: 40px auto;
+            padding: 40px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .doc-header {
+            border-bottom: 3px solid #003366;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        .btn-print {
+            background-color: #003366;
+            color: white;
+        }
+        /* This hides the print button when the user exports to PDF! */
+        @media print {
+            .no-print { display: none !important; }
+            .roadmap-container { border: none; box-shadow: none; margin: 0; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="d-flex justify-content-between align-items-center mt-4 no-print" style="max-width: 850px; margin: auto;">
+        <button onclick="window.location.href='/'" class="btn btn-outline-secondary">← Back to Form</button>
+        <button onclick="window.print()" class="btn btn-print fw-bold">⬇️ Download as PDF</button>
+    </div>
+
+    <div class="roadmap-container">
+        <div class="doc-header d-flex justify-content-between align-items-end">
+            <div>
+                <h1 style="color: #003366; font-weight: 800;">AI Public Defender</h1>
+                <h4 class="text-muted">Custom Legal Roadmap</h4>
+            </div>
+            <div class="text-end text-muted small">
+                Generated: <span id="dateText"></span><br>
+                Jurisdiction: Indian Law
+            </div>
+        </div>
+
+        <div id="roadmapContent" style="line-height: 1.8;">
+            <div class="text-center mt-5 text-muted">Loading your roadmap...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Set today's date
+    const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('dateText').innerText = new Date().toLocaleDateString('en-IN', dateOptions);
+
+    // 2. Grab the AI data from browser memory
+    const roadmapData = localStorage.getItem('legalRoadmap');
+    
+    if (roadmapData) {
+        document.getElementById('roadmapContent').innerHTML = roadmapData;
+    } else {
+        document.getElementById('roadmapContent').innerHTML = "<div class='alert alert-danger'>No roadmap data found. Please generate it from the main form.</div>";
+    }
+</script>
+
+</body>
+</html>
