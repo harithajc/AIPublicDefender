@@ -1,4 +1,5 @@
 import os
+import tempfile
 from flask import Flask, request, jsonify, render_template
 from google import genai
 from dotenv import load_dotenv
@@ -133,6 +134,85 @@ def analyze_case():
         return jsonify({"status": "success", "ai_response": ai_text})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route('/api/analyze-document', methods=['POST'])
+def analyze_document():
+    uploaded_file = request.files.get('document')
+    language = request.form.get('language', 'English')
+
+    if not uploaded_file or uploaded_file.filename == '':
+        return jsonify({"status": "error", "message": "Please upload a legal document or image."}), 400
+
+    allowed_mime_types = {
+        'application/pdf',
+        'image/png',
+        'image/jpeg',
+        'image/jpg',
+        'image/webp',
+        'text/plain'
+    }
+
+    if uploaded_file.mimetype not in allowed_mime_types:
+        return jsonify({
+            "status": "error",
+            "message": "Unsupported file type. Please upload PDF, PNG, JPG, WEBP, or TXT files."
+        }), 400
+
+    prompt = f"""
+You are a professional legal analyst focused on Indian legal context.
+Analyze the uploaded legal document and respond ENTIRELY in {language}.
+
+Use clear, plain language and structure your answer in Markdown with bullet points and bold headings.
+Include these sections exactly:
+
+## **Document Purpose**
+- Briefly explain what this document is and why it was issued.
+
+## **Critical Deadlines**
+- List any exact dates, response windows, or time-sensitive actions.
+- If no deadlines are explicit, say "No explicit deadline found".
+
+## **Legal Obligations**
+- List duties, restrictions, compliance requirements, or commitments.
+
+## **Financial Amounts**
+- Extract and list all important amounts, penalties, interest, fees, or payment terms.
+- If not found, say "No financial amounts clearly specified".
+
+## **Red Flags / High-Risk Clauses**
+- Identify potentially dangerous terms (penalty, indemnity, termination, admission of liability, waiver, jurisdiction/arbitration disadvantage, broad rights transfer, one-sided obligations).
+- Explain why each is risky in simple terms.
+
+## **Recommended Next Steps**
+- Provide a practical, prioritized checklist to protect the user's interests.
+- Include immediate steps for evidence/document preservation and lawyer consultation where appropriate.
+
+Important:
+- Do not provide final legal advice; keep it informational.
+- Quote exact clause snippets where possible.
+"""
+
+    temp_path = None
+    try:
+        suffix = os.path.splitext(uploaded_file.filename)[1] or '.tmp'
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
+            uploaded_file.save(temp_file)
+            temp_path = temp_file.name
+
+        uploaded_asset = client.files.upload(file=temp_path)
+
+        response = client.models.generate_content(
+            model="gemini-3.1-flash-lite-preview",
+            contents=[uploaded_asset, prompt],
+        )
+
+        return jsonify({"status": "success", "analysis": response.text or "No analysis generated."})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
 
 if __name__ == '__main__':
     app.run(debug=True)
