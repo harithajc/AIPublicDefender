@@ -75,6 +75,19 @@
             overflow: hidden;
             padding: 8px !important;
         }
+        #microphoneBtn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 88px;
+        }
+        .mic-icon {
+            width: 15px;
+            height: 15px;
+            vertical-align: -2px;
+            margin-right: 6px;
+            color: currentColor;
+        }
         .keyboard-title {
             font-weight: 800;
             color: #003366;
@@ -191,7 +204,7 @@
                                 <div class="text-muted small" id="ui-board-hint">Type in Kannada, Marathi, or Hindi with the cursor in the box below.</div>
                             </div>
                             <button type="button" id="microphoneBtn" class="btn btn-sm btn-outline-primary" title="Speak your problem">
-                                <span id="micStatus">🎤 Speak</span>
+                                <span id="micStatus"><svg class="mic-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Zm5-3a1 1 0 1 1 2 0a7 7 0 0 1-6 6.93V21h3a1 1 0 1 1 0 2H8a1 1 0 1 1 0-2h3v-2.07A7 7 0 0 1 5 12a1 1 0 1 1 2 0a5 5 0 1 0 10 0Z"/></svg>Speak</span>
                             </button>
                         </div>
 
@@ -524,6 +537,7 @@
     const microphoneBtn = document.getElementById('microphoneBtn');
     const micStatus = document.getElementById('micStatus');
     const contextField = document.getElementById('context');
+    const micIconMarkup = '<svg class="mic-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Zm5-3a1 1 0 1 1 2 0a7 7 0 0 1-6 6.93V21h3a1 1 0 1 1 0 2H8a1 1 0 1 1 0-2h3v-2.07A7 7 0 0 1 5 12a1 1 0 1 1 2 0a5 5 0 1 0 10 0Z"/></svg>';
     let recognition;
     let isListening = false;
 
@@ -535,7 +549,7 @@
         microphoneBtn.addEventListener('click', () => {
             if (!isListening) {
                 isListening = true;
-                micStatus.textContent = '⏹️ Listening...';
+                micStatus.innerHTML = `${micIconMarkup}Listening...`;
                 microphoneBtn.classList.add('active');
                 recognition.lang = document.getElementById('language').value === 'Kannada' ? 'kn-IN' :
                                    document.getElementById('language').value === 'Hindi' ? 'hi-IN' :
@@ -554,13 +568,13 @@
 
         recognition.onend = () => {
             isListening = false;
-            micStatus.textContent = '🎤 Speak';
+            micStatus.innerHTML = `${micIconMarkup}Speak`;
             microphoneBtn.classList.remove('active');
         };
 
         recognition.onerror = (event) => {
             console.error('Speech recognition error:', event.error);
-            micStatus.textContent = '🎤 Error';
+            micStatus.innerHTML = `${micIconMarkup}Error`;
             isListening = false;
             microphoneBtn.classList.remove('active');
         };

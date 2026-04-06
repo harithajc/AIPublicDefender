@@ -42,7 +42,7 @@
     <div class="d-flex justify-content-between align-items-center mt-4 no-print" style="max-width: 850px; margin: auto;">
         <button onclick="window.location.href='/app'" class="btn btn-outline-secondary">← Back to Form</button>
         <div>
-            <button id="readAloudBtn" class="btn btn-info fw-bold me-2">🔊 Read Aloud</button>
+            <button id="readAloudBtn" class="btn btn-info fw-bold me-2">🗣️ Read Aloud</button>
             <button onclick="window.print()" class="btn btn-print fw-bold">⬇️ Download as PDF</button>
         </div>
     </div>
@@ -100,7 +100,7 @@
 
         if (isSpeaking) {
             synth.cancel();
-            readAloudBtn.textContent = '🔊 Read Aloud';
+            readAloudBtn.textContent = '🗣️ Read Aloud';
             isSpeaking = false;
             return;
         }
@@ -123,13 +123,13 @@
 
         utterance.onend = () => {
             isSpeaking = false;
-            readAloudBtn.textContent = '🔊 Read Aloud';
+            readAloudBtn.textContent = '🗣️ Read Aloud';
         };
 
         utterance.onerror = (event) => {
             console.error('Speech synthesis error:', event.error);
             isSpeaking = false;
-            readAloudBtn.textContent = '🔊 Read Aloud';
+            readAloudBtn.textContent = '🗣️ Read Aloud';
         };
 
         synth.speak(utterance);
