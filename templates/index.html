@@ -10,53 +10,71 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&family=Noto+Sans+Kannada:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
+        :root {
+            --brand-900: #0b2f55;
+            --brand-700: #0f4c81;
+            --brand-100: #e8f1fb;
+            --ink-900: #102a43;
+            --ink-700: #334e68;
+            --surface: #ffffff;
+            --surface-soft: rgba(255, 255, 255, 0.92);
+            --line-soft: rgba(11, 47, 85, 0.14);
+            --shadow-soft: 0 14px 34px rgba(16, 42, 67, 0.10);
+        }
         body {
             background:
-                radial-gradient(circle at top left, rgba(0, 51, 102, 0.12), transparent 30%),
-                radial-gradient(circle at top right, rgba(19, 106, 138, 0.12), transparent 28%),
-                #f7f9fc;
+                radial-gradient(circle at 0% 0%, rgba(15, 76, 129, 0.14), transparent 34%),
+                radial-gradient(circle at 100% 0%, rgba(11, 47, 85, 0.10), transparent 30%),
+                linear-gradient(180deg, #f5f9ff 0%, #f8fbff 100%);
             font-family: 'Noto Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--ink-900);
         }
         .header-box {
-            background: linear-gradient(135deg, #003366 0%, #0f4c81 100%);
+            background: linear-gradient(135deg, var(--brand-900) 0%, var(--brand-700) 100%);
             color: white;
-            padding: 20px;
-            border-radius: 16px;
-            margin-bottom: 20px;
+            padding: 22px;
+            border-radius: 18px;
+            margin-bottom: 22px;
+            box-shadow: 0 10px 26px rgba(11, 47, 85, 0.24);
         }
         .board-panel {
-            border: 1px solid rgba(0, 51, 102, 0.12);
+            border: 1px solid var(--line-soft);
             border-radius: 16px;
-            background: rgba(255, 255, 255, 0.92);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+            background: var(--surface-soft);
+            box-shadow: var(--shadow-soft);
         }
         .board-toolbar {
             gap: 0.5rem;
             flex-wrap: wrap;
         }
         .board-chip {
-            border: 1px solid rgba(0, 51, 102, 0.18);
+            border: 1px solid rgba(11, 47, 85, 0.18);
             background: #fff;
-            color: #003366;
+            color: var(--brand-900);
             border-radius: 999px;
             padding: 0.45rem 0.85rem;
             font-weight: 700;
             transition: all 0.2s ease;
         }
         .board-chip:hover {
-            background: #eef5ff;
+            background: var(--brand-100);
             transform: translateY(-1px);
         }
         .board-chip.active {
-            background: #003366;
+            background: var(--brand-900);
             color: #fff;
-            border-color: #003366;
+            border-color: var(--brand-900);
         }
         .text-board {
             min-height: 220px;
             resize: none;
             font-size: 1.05rem;
             line-height: 1.8;
+            border-color: rgba(11, 47, 85, 0.18);
+        }
+        .text-board:focus {
+            border-color: var(--brand-700);
+            box-shadow: 0 0 0 0.18rem rgba(15, 76, 129, 0.18);
         }
         .typing-workspace {
             display: grid;
@@ -69,11 +87,12 @@
             margin-bottom: 0;
         }
         .keyboard-shell {
-            border: 1px solid rgba(0, 51, 102, 0.12);
+            border: 1px solid var(--line-soft);
             border-radius: 16px;
-            background: #fefefe;
+            background: var(--surface);
             overflow: hidden;
             padding: 8px !important;
+            box-shadow: var(--shadow-soft);
         }
         #microphoneBtn {
             display: inline-flex;
@@ -90,7 +109,7 @@
         }
         .keyboard-title {
             font-weight: 800;
-            color: #003366;
+            color: var(--brand-900);
         }
         .keyboard-row {
             display: flex;
@@ -99,9 +118,9 @@
             margin-bottom: 0.25rem;
         }
         .kbd-key {
-            border: 1px solid rgba(0, 51, 102, 0.16);
+            border: 1px solid rgba(11, 47, 85, 0.16);
             background: linear-gradient(180deg, #ffffff 0%, #f3f7fb 100%);
-            color: #102a43;
+            color: var(--ink-900);
             border-radius: 10px;
             min-width: 2.3rem;
             min-height: 2.3rem;
@@ -112,7 +131,7 @@
         }
         .kbd-key:hover {
             transform: translateY(-1px);
-            box-shadow: 0 6px 18px rgba(0, 51, 102, 0.12);
+            box-shadow: 0 6px 18px rgba(11, 47, 85, 0.12);
         }
         .kbd-key.wide {
             min-width: 5rem;
@@ -124,13 +143,40 @@
             font-size: 0.75rem;
         }
         .kbd-key.action {
-            background: #003366;
+            background: var(--brand-900);
             color: #fff;
-            border-color: #003366;
+            border-color: var(--brand-900);
         }
         #virtualKeyboard {
             max-height: none;
             overflow: visible;
+        }
+        .card.shadow {
+            border: 1px solid var(--line-soft);
+            border-radius: 18px;
+            box-shadow: 0 18px 44px rgba(16, 42, 67, 0.12) !important;
+            background: var(--surface-soft);
+            backdrop-filter: blur(2px);
+        }
+        .form-select,
+        textarea.form-control {
+            border: 1px solid rgba(11, 47, 85, 0.2);
+            border-radius: 12px;
+        }
+        .form-select:focus,
+        textarea.form-control:focus {
+            border-color: var(--brand-700);
+            box-shadow: 0 0 0 0.18rem rgba(15, 76, 129, 0.18);
+        }
+        #submitBtn {
+            border-radius: 12px;
+            border: 0;
+            background: linear-gradient(135deg, var(--brand-900) 0%, var(--brand-700) 100%) !important;
+            box-shadow: 0 10px 18px rgba(11, 47, 85, 0.25);
+        }
+        #submitBtn:hover {
+            filter: brightness(1.03);
+            transform: translateY(-1px);
         }
         @media (max-width: 991.98px) {
             .typing-workspace {

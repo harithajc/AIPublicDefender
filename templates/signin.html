@@ -10,8 +10,8 @@
     <style>
         :root {
             --ink: #102a43;
-            --brand: #0a5d5c;
-            --brand-strong: #084948;
+            --brand: #0f4c81;
+            --brand-strong: #0b2f55;
             --accent: #ffb703;
             --surface: #ffffff;
             --surface-soft: #f5f8fa;
@@ -31,9 +31,9 @@
             font-family: 'Manrope', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: var(--ink);
             background:
-                radial-gradient(circle at 10% 15%, rgba(255, 183, 3, 0.28), transparent 35%),
-                radial-gradient(circle at 90% 85%, rgba(10, 93, 92, 0.2), transparent 35%),
-                linear-gradient(135deg, #eef5f5 0%, #e7eff8 100%);
+                radial-gradient(circle at 10% 15%, rgba(15, 76, 129, 0.22), transparent 35%),
+                radial-gradient(circle at 90% 85%, rgba(11, 47, 85, 0.18), transparent 35%),
+                linear-gradient(135deg, #f1f7ff 0%, #eaf3ff 100%);
             display: grid;
             place-items: center;
             padding: 24px;
@@ -46,7 +46,7 @@
             border: 1px solid rgba(16, 42, 67, 0.08);
             border-radius: 22px;
             overflow: hidden;
-            box-shadow: 0 20px 60px rgba(16, 42, 67, 0.16);
+            box-shadow: 0 22px 50px rgba(16, 42, 67, 0.14);
             display: grid;
             grid-template-columns: 1.1fr 0.9fr;
             animation: card-reveal 600ms ease-out;
@@ -55,7 +55,7 @@
         .signin-aside {
             padding: 44px 36px;
             background:
-                linear-gradient(160deg, #0a5d5c 0%, #0f7a78 45%, #1f8e8c 100%);
+                linear-gradient(160deg, #0b2f55 0%, #0f4c81 52%, #1a6aa3 100%);
             color: #f8fffe;
             position: relative;
         }
@@ -152,7 +152,7 @@
             border: 1px solid #c4d1de;
             border-radius: 12px;
             padding: 0 14px;
-            background: #f0f6f6;
+            background: #eef5ff;
             color: var(--ink);
             font-weight: 700;
             cursor: pointer;
@@ -175,6 +175,7 @@
             align-items: center;
             gap: 10px;
             margin-top: 10px;
+            box-shadow: 0 12px 20px rgba(11, 47, 85, 0.24);
         }
 
         .primary-btn:hover:not(:disabled) {
@@ -218,7 +219,7 @@
         }
 
         .helper-row a {
-            color: var(--brand-strong);
+            color: var(--brand);
             font-weight: 700;
             text-decoration: none;
             font-size: 0.92rem;
